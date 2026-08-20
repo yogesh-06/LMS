@@ -29,6 +29,12 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: String,
       required: [true, "Please enter your email"],
       unique: true,
+      validate: {
+        validator: function (email: string) {
+          return emailRegexPattern.test(email);
+        },
+        message: "Please enter a valid email address",
+      },
     },
     password: {
       type: String,
@@ -36,6 +42,28 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       minLength: [8, "Password should be greater than 8 characters"],
       select: false,
     },
+    avatar: {
+      public_id: {
+        type: String,
+        required: true,
+      },
+      url: {
+        type: String,
+        required: true,
+      },
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    cources: [
+      {
+        courceId: {
+          type: String,
+          ref: "Cource",
+        },
+      },
+    ],
     role: {
       type: String,
       default: "user",
@@ -48,4 +76,18 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
   { timestamps: true },
 );
 
-export const User = mongoose.model("User", userSchema);
+// Encrypting password before saving user
+userSchema.pre<IUser>("save", async function (next) {
+  if (!this.isModified("password")) {
+    next();
+  }
+
+  this.password = await bcrypt.hash(this.password, 10);
+});
+
+// Compare user password
+userSchema.methods.comparePassword = async function (enteredPassword: string) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+export const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
