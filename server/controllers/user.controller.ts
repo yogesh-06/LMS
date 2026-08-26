@@ -7,8 +7,13 @@ import jwt, { Secret } from "jsonwebtoken";
 import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/sendMail";
-import { sendToken } from "../utils/jwt";
+import {
+  refreshTokenOptions,
+  accessTokenOptions,
+  sendToken,
+} from "../utils/jwt";
 import { redis } from "../utils/redis";
+import { getUserById } from "../services/user.service";
 
 interface IRegistrationBody {
   name: string;
@@ -169,6 +174,91 @@ export const logoutUser = CatchAsyncError(
         success: true,
         message: "Logged out successfully",
       });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  },
+);
+
+// Update access token
+export const updateAccessToken = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const refresh_token = req.cookies.refreshToken as string;
+      if (!refresh_token) {
+        return next(
+          new ErrorHandler("Please login to access this resource", 400),
+        );
+      }
+
+      const decoded = jwt.verify(
+        refresh_token,
+        process.env.REFRESH_TOKEN as Secret,
+      ) as jwt.JwtPayload;
+
+      const message = "Could not refresh token";
+      if (!decoded?.id) {
+        return next(new ErrorHandler(message, 400));
+      }
+
+      const session = await redis.get(decoded.id as string);
+      if (!session) {
+        return next(new ErrorHandler(message, 400));
+      }
+
+      const user = JSON.parse(session) as IUser;
+      const accessToken = jwt.sign(
+        { id: user._id },
+        process.env.ACCESS_TOKEN as Secret,
+        { expiresIn: "5m" },
+      );
+      const refreshToken = jwt.sign(
+        { id: user._id },
+        process.env.REFRESH_TOKEN as Secret,
+        { expiresIn: "3d" },
+      );
+
+      res.cookie("accessToken", accessToken, accessTokenOptions);
+      res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+
+      res.status(200).json({
+        status: "success",
+        accessToken,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  },
+);
+
+export const getUser = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await getUserById(String(req.user?._id), res);
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  },
+);
+
+// Social auth
+interface ISocialAuthBody {
+  email: string;
+  name: string;
+  avatar: string;
+}
+
+export const socialAuth = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, name, avatar }: ISocialAuthBody = req.body;
+      const user = await User.findOne({ email });
+      if (!user) {
+        const newUser = await User.create({ email, name, avatar });
+        await sendToken(newUser, 200, res);
+      } else {
+        await sendToken(user as IUser, 200, res);
+      }
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }

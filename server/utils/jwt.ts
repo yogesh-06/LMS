@@ -11,6 +11,34 @@ interface ITokenOptions {
   secure?: boolean;
 }
 
+// parse environment variable to integrate with fallback mechanism
+const accessTokenExpire = parseInt(
+  process.env.ACCESS_TOKEN_EXPIRE || "300",
+  10,
+);
+const refreshTokenExpire = parseInt(
+  process.env.REFRESH_TOKEN_EXPIRE || "1200",
+  10,
+);
+
+// options for access token cookie
+export const accessTokenOptions: ITokenOptions = {
+  expires: new Date(Date.now() + accessTokenExpire * 60 * 60 * 1000), // convert minutes to milliseconds
+  maxAge: accessTokenExpire * 60 * 60 * 1000, // convert minutes to milliseconds
+  httponly: true,
+  samesite: "lax",
+  secure: process.env.NODE_ENV === "production", // set secure flag in production
+};
+
+// options for refresh token cookie
+export const refreshTokenOptions: ITokenOptions = {
+  expires: new Date(Date.now() + refreshTokenExpire * 24 * 60 * 60 * 1000), // convert minutes to milliseconds
+  maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000, // convert minutes to milliseconds
+  httponly: true,
+  samesite: "lax",
+  secure: process.env.NODE_ENV === "production", // set secure flag in production
+};
+
 export const sendToken = async (
   user: IUser,
   statusCode: number,
@@ -18,34 +46,6 @@ export const sendToken = async (
 ) => {
   const accessToken = user.signAccessToken();
   const refreshToken = user.signRefreshToken();
-
-  // parse environment variable to integrate with fallback mechanism
-  const accessTokenExpire = parseInt(
-    process.env.ACCESS_TOKEN_EXPIRE || "300",
-    10,
-  );
-  const refreshTokenExpire = parseInt(
-    process.env.REFRESH_TOKEN_EXPIRE || "1200",
-    10,
-  );
-
-  // options for access token cookie
-  const accessTokenOptions: ITokenOptions = {
-    expires: new Date(Date.now() + accessTokenExpire * 60 * 1000), // convert minutes to milliseconds
-    maxAge: accessTokenExpire * 60 * 1000, // convert minutes to milliseconds
-    httponly: true,
-    samesite: "lax",
-    secure: process.env.NODE_ENV === "production", // set secure flag in production
-  };
-
-  // options for refresh token cookie
-  const refreshTokenOptions: ITokenOptions = {
-    expires: new Date(Date.now() + refreshTokenExpire * 60 * 1000), // convert minutes to milliseconds
-    maxAge: refreshTokenExpire * 60 * 1000, // convert minutes to milliseconds
-    httponly: true,
-    samesite: "lax",
-    secure: process.env.NODE_ENV === "production", // set secure flag in production
-  };
 
   // store refresh token in Redis
   redis.set(String(user._id), JSON.stringify(user) as any);
