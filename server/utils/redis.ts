@@ -1,13 +1,18 @@
 import Redis from "ioredis";
-import { log } from "node:console";
 require("dotenv").config();
 
-const redisClient = () => {
-  if (process.env.REDIS_HOST) {
-    console.log("Redis connected!");
-    return process.env.REDIS_HOST;
-  }
-  throw new Error("Redis host is not defined in the environment variables");
-};
+const redisUrl = process.env.REDIS_HOST;
 
-export const redis = new Redis(redisClient());
+if (!redisUrl) {
+  throw new Error("Redis host is not defined in the environment variables");
+}
+
+export const redis = new Redis(redisUrl);
+
+redis.on("connect", () => {
+  console.log("Redis connected!");
+});
+
+redis.on("error", (error) => {
+  console.error("Redis connection error:", error.message);
+});
