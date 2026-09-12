@@ -14,6 +14,7 @@ import {
 } from "../utils/jwt";
 import { redis } from "../utils/redis";
 import { getUserById } from "../services/user.service";
+import cloudinary from "cloudinary";
 
 interface IRegistrationBody {
   name: string;
@@ -218,6 +219,8 @@ export const updateAccessToken = CatchAsyncError(
         { expiresIn: "3d" },
       );
 
+      req.user = user;
+
       res.cookie("accessToken", accessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
 
@@ -259,6 +262,138 @@ export const socialAuth = CatchAsyncError(
       } else {
         await sendToken(user as IUser, 200, res);
       }
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  },
+);
+
+// Update user info
+interface IUpdateUserInfoBody {
+  name: string;
+  email: string;
+}
+
+export const updateUserInfo = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { name, email }: IUpdateUserInfoBody = req.body;
+      const userId = req.user?._id || "";
+      const user = await User.findById(userId);
+
+      if (email && user) {
+        const isEmailExist = await User.findOne({ email });
+        if (isEmailExist) {
+          return next(new ErrorHandler("Email already exists", 400));
+        }
+        user.email = email;
+      }
+
+      if (name && user) {
+        user.name = name;
+      }
+
+      await user?.save();
+      await redis.set(userId as string, JSON.stringify(user));
+
+      res.status(201).json({
+        success: true,
+        message: "User info updated successfully",
+        user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  },
+);
+
+// Update user password
+interface IUpdateUserPasswordBody {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export const updateUserPassword = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { oldPassword, newPassword }: IUpdateUserPasswordBody = req.body;
+      if (!oldPassword || !newPassword) {
+        return next(new ErrorHandler("Please enter old and new password", 400));
+      }
+      const user = await User.findById(req.user?._id).select("+password");
+      if (!user || user.password === undefined) {
+        return next(new ErrorHandler("User not found", 400));
+      }
+      const isPasswordMatched = await user.comparePassword(oldPassword);
+      if (!isPasswordMatched) {
+        return next(new ErrorHandler("Old password is incorrect", 400));
+      }
+      user.password = newPassword;
+      await user.save();
+      await redis.set(String(user._id), JSON.stringify(user));
+
+      res.status(201).json({
+        success: true,
+        message: "Password updated successfully",
+        user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  },
+);
+
+interface IUpdateUserAvatarBody {
+  avatar: string;
+}
+
+export const updateUserAvatar = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req?.user?._id;
+      const user = await User.findById(userId);
+      const { avatar }: IUpdateUserAvatarBody = req.body;
+
+      if (avatar && user) {
+        if (user.avatar?.public_id) {
+          await cloudinary.v2.uploader.destroy(
+            user.avatar?.public_id as string,
+          );
+
+          const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+            folder: "avatars",
+            width: 150,
+            height: 150,
+            crop: "scale",
+          });
+
+          user.avatar = {
+            public_id: myCloud.public_id,
+            url: myCloud.secure_url,
+          };
+        } else {
+          const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+            folder: "avatars",
+            width: 150,
+            height: 150,
+            crop: "scale",
+          });
+
+          user.avatar = {
+            public_id: myCloud.public_id,
+            url: myCloud.secure_url,
+          };
+        }
+      }
+
+      await user?.save();
+      await redis.set(String(user?._id), JSON.stringify(user));
+
+      return res.status(201).json({
+        user,
+        success: true,
+        message: "Avatar updated successfully",
+      });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
