@@ -6,7 +6,8 @@ import cors from "cors";
 import { ErrorMiddleware } from "./middelware/error";
 
 // import routes
-import userRoutes from "./routes/user.route";
+import userRouter from "./routes/user.route";
+import courseRouter from "./routes/course.route";
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
@@ -17,7 +18,8 @@ app.use(
 );
 
 // User routes
-app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/courses", courseRouter);
 
 // Test route
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
