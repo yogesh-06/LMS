@@ -272,12 +272,14 @@ export const socialAuth = CatchAsyncError(
 interface IUpdateUserInfoBody {
   name: string;
   email: string;
+  role: string;
 }
 
 export const updateUserInfo = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, email }: IUpdateUserInfoBody = req.body;
+      const { name, email, role }: IUpdateUserInfoBody = req.body;
+
       const userId = req.user?._id || "";
       const user = await User.findById(userId);
 
@@ -289,8 +291,9 @@ export const updateUserInfo = CatchAsyncError(
         user.email = email;
       }
 
-      if (name && user) {
-        user.name = name;
+      if (user) {
+        user.name = name || user.name;
+        user.role = role || user.role;
       }
 
       await user?.save();

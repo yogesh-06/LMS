@@ -13,16 +13,16 @@ import {
 } from "../controllers/user.controller";
 import { authorizeRoles, isAuthenticated } from "../middelware/auth";
 
-const router = express.Router();
+const userRouter = express.Router();
 
-router.post("/registration", registerUser);
-router.post("/activate", activateUser);
-router.post("/login", loginUser);
-router.get("/logout", isAuthenticated, authorizeRoles("admin"), logoutUser);
-router.get("/refresh-token", updateAccessToken);
-router.get("/me", isAuthenticated, getUser);
-router.post("/social-auth", socialAuth);
-router.put("/update-user", isAuthenticated, updateUserInfo);
-router.put("/update-password", isAuthenticated, updateUserPassword);
-router.put("/update-avatar", isAuthenticated, updateUserAvatar);
-export default router;
+userRouter.post("/registration", registerUser);
+userRouter.post("/activate", activateUser);
+userRouter.post("/login", loginUser);
+userRouter.get("/logout", isAuthenticated, authorizeRoles("admin"), logoutUser);
+userRouter.get("/refresh-token", updateAccessToken);
+userRouter.get("/me", isAuthenticated, getUser);
+userRouter.post("/social-auth", socialAuth);
+userRouter.put("/update-user", isAuthenticated, updateUserInfo);
+userRouter.put("/update-password", isAuthenticated, updateUserPassword);
+userRouter.put("/update-avatar", isAuthenticated, updateUserAvatar);
+export default userRouter;
