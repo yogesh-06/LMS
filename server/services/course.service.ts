@@ -6,8 +6,7 @@ import { CatchAsyncError } from "../middelware/catchAsyncError";
 
 export const createCourse = CatchAsyncError(
   async (data: any, res: Response) => {
-    const course = CourseModel.create(data);
-
+    const course = await CourseModel.create(data);
     res.status(201).json({
       success: true,
       course,
