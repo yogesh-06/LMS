@@ -58,11 +58,6 @@ export const sendToken = async (
   res.status(statusCode).json({
     success: true,
     message: "Authentication successful",
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-    },
+    user,
   });
 };

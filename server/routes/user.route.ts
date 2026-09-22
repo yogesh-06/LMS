@@ -15,7 +15,7 @@ import { authorizeRoles, isAuthenticated } from "../middelware/auth";
 
 const userRouter = express.Router();
 
-userRouter.post("/registration", registerUser);
+userRouter.post("/register", registerUser);
 userRouter.post("/activate", activateUser);
 userRouter.post("/login", loginUser);
 userRouter.get("/logout", isAuthenticated, authorizeRoles("admin"), logoutUser);

@@ -26,7 +26,7 @@ interface IRegistrationBody {
 export const registerUser = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, email, password, avatar }: IRegistrationBody = req.body;
+      const { name, email, password }: IRegistrationBody = req.body;
       const isEmailExist = await User.findOne({ email });
       if (isEmailExist) {
         return next(new ErrorHandler("Email already exists", 400));

@@ -11,7 +11,7 @@ export interface IUser extends Document {
   role: string;
   createdAt: Date;
   isVerified: boolean;
-  cources: Array<{ courceId: string }>;
+  courses: Array<{ courseId: string }>;
   comparePassword: (password: string) => Promise<boolean>;
   avatar: {
     public_id: string;
@@ -60,11 +60,11 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    cources: [
+    courses: [
       {
-        courceId: {
+        courseId: {
           type: String,
-          ref: "Cource",
+          ref: "Course",
         },
       },
     ],
