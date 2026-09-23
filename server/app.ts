@@ -9,6 +9,7 @@ import { ErrorMiddleware } from "./middelware/error";
 import userRouter from "./routes/user.route";
 import courseRouter from "./routes/course.route";
 import orderRouter from "./routes/order.route";
+import notificationsRouter from "./routes/notification.route";
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
@@ -22,6 +23,7 @@ app.use(
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/courses", courseRouter);
+app.use("/api/v1/notifications", notificationsRouter);
 
 // Test route
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
