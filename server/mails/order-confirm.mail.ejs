@@ -20,8 +20,8 @@
           padding: 24px !important;
         }
 
-        .order-details {
-          padding: 16px !important;
+        .email-footer {
+          padding: 18px 24px 20px !important;
         }
       }
     </style>
@@ -141,7 +141,6 @@
 
                 <!-- Order Details -->
                 <table
-                  class="order-details"
                   role="presentation"
                   width="100%"
                   cellspacing="0"
@@ -154,9 +153,10 @@
                     overflow: hidden;
                   "
                 >
-                  <!-- Order Header -->
+                  <!-- Order Information -->
                   <tr>
                     <td
+                      colspan="3"
                       style="
                         padding: 13px 16px;
                         background-color: #f1f5f9;
@@ -179,7 +179,9 @@
                             "
                           >
                             <strong>Order #:</strong>
-                            <span style="color: #1e293b"> <%= orderId %> </span>
+                            <span style="color: #1e293b">
+                              <%= order._id %>
+                            </span>
                           </td>
 
                           <td
@@ -192,7 +194,7 @@
                           >
                             <strong>Order Date:</strong>
                             <span style="color: #1e293b">
-                              <%= orderDate %>
+                              <%= order.date %>
                             </span>
                           </td>
                         </tr>
@@ -247,7 +249,7 @@
                     </td>
                   </tr>
 
-                  <!-- Product -->
+                  <!-- Course -->
                   <tr>
                     <td
                       style="
@@ -258,7 +260,7 @@
                         font-weight: 500;
                       "
                     >
-                      <%= courseName %>
+                      <%= order.name %>
                     </td>
 
                     <td
@@ -270,7 +272,7 @@
                         line-height: 20px;
                       "
                     >
-                      <%= quantity %>
+                      <%= order.quantity %>
                     </td>
 
                     <td
@@ -283,24 +285,16 @@
                         white-space: nowrap;
                       "
                     >
-                      <%= amount %>
+                      <%= order.price %>
                     </td>
                   </tr>
 
                   <!-- Divider -->
                   <tr>
-                    <td colspan="3" style="padding: 0 16px">
-                      <div
-                        style="
-                          height: 1px;
-                          background-color: #e2e8f0;
-                          line-height: 1px;
-                          font-size: 1px;
-                        "
-                      >
-                        &nbsp;
-                      </div>
-                    </td>
+                    <td
+                      colspan="3"
+                      style="padding: 0 16px; border-top: 1px solid #e2e8f0"
+                    ></td>
                   </tr>
 
                   <!-- Subtotal -->
@@ -327,7 +321,7 @@
                         white-space: nowrap;
                       "
                     >
-                      <%= subtotal %>
+                      <%= order.price %>
                     </td>
                   </tr>
 
@@ -356,7 +350,7 @@
                         white-space: nowrap;
                       "
                     >
-                      <%= total %>
+                      <%= order.price %>
                     </td>
                   </tr>
                 </table>
@@ -400,6 +394,7 @@
             <!-- Footer -->
             <tr>
               <td
+                class="email-footer"
                 style="
                   padding: 18px 40px 22px;
                   border-top: 1px solid #e2e8f0;
