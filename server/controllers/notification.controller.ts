@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import ErrorHandler from "../utils/ErrorHandler";
 import NotificationModel from "../models/notification.model";
 import { CatchAsyncError } from "../middelware/catchAsyncError";
+import cron from "node-cron";
 
 // get all notifications - AdminOnly
 export const getAllNotifications = CatchAsyncError(
@@ -46,3 +47,13 @@ export const updateNotifications = CatchAsyncError(
     }
   },
 );
+
+// delete notifications using Cron.
+cron.schedule("0 0 0 * * *", async () => {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  await NotificationModel.deleteMany({
+    status: "read",
+    createdAt: { $lt: thirtyDaysAgo },
+  });
+  console.log("Delte read notifications");
+});
