@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { CatchAsyncError } from "../middelware/catchAsyncError";
 import ErrorHandler from "../utils/ErrorHandler";
 import cloudinary from "cloudinary";
-import { createCourse } from "../services/course.service";
+import { createCourse, getAllCoursesService } from "../services/course.service";
 import CourseModel from "../models/course.model";
 import { redis } from "../utils/redis";
 import mongoose from "mongoose";
@@ -84,6 +84,8 @@ export const getSingleCourse = CatchAsyncError(
           "-courseData.videoUrl -courseData.suggestions -courseData.questions -courseData.links",
         );
 
+        await redis.set(req.params.id as string, JSON.stringify(course));
+
         res.status(201).json({
           success: true,
           course,
@@ -111,6 +113,8 @@ export const getAllCourses = CatchAsyncError(
         const course = await CourseModel.find().select(
           "-courseData.videoUrl -courseData.suggestions -courseData.questions -courseData.links",
         );
+
+        await redis.set("all-courses", JSON.stringify(course));
 
         res.status(201).json({
           success: true,
@@ -393,6 +397,16 @@ export const addReplytoReview = CatchAsyncError(
       });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
+    }
+  },
+);
+
+export const getAllPublicCourses = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      getAllCoursesService(res);
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
     }
   },
 );

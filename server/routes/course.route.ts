@@ -5,12 +5,14 @@ import {
   addReplytoReview,
   addReview,
   getAllCourses,
+  getAllPublicCourses,
   getCourseByUser,
   getSingleCourse,
   updateCourse,
   uploadCourse,
 } from "../controllers/course.controller";
 import { authorizeRoles, isAuthenticated } from "../middelware/auth";
+import { deleteCourse } from "../controllers/user.controller";
 
 const courseRouter = express.Router();
 
@@ -43,6 +45,13 @@ courseRouter.get(
 );
 
 courseRouter.get(
+  "/getAllPublic/",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  getAllPublicCourses,
+);
+
+courseRouter.get(
   "/getCourseContent/:id",
   isAuthenticated,
   authorizeRoles("admin"),
@@ -58,6 +67,13 @@ courseRouter.put(
   isAuthenticated,
   authorizeRoles("admin"),
   addReplytoReview,
+);
+
+courseRouter.delete(
+  "/deleteById/:id",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  deleteCourse,
 );
 
 export default courseRouter;
