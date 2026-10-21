@@ -79,25 +79,28 @@ const courseDataScehma = new Schema<ICourseData>({
   questions: [commentSchema],
 });
 
-const courseSchema = new Schema<ICourse>({
-  name: { type: String, required: true },
-  description: { type: String },
-  price: { type: Number, required: true },
-  estimatedPrice: { type: Number },
-  thumbnail: {
-    public_id: { type: String },
-    url: { type: String },
+const courseSchema = new Schema<ICourse>(
+  {
+    name: { type: String, required: true },
+    description: { type: String },
+    price: { type: Number, required: true },
+    estimatedPrice: { type: Number },
+    thumbnail: {
+      public_id: { type: String },
+      url: { type: String },
+    },
+    tags: { type: String, required: true },
+    level: { type: String, required: true },
+    demoVideoURL: { type: String, required: true },
+    benefits: [{ title: String }],
+    prerequites: [{ title: String }],
+    reviews: [reviewSchema],
+    courseData: [courseDataScehma],
+    ratings: { type: Number, default: 0 },
+    purchased: { type: Number, default: 0 },
   },
-  tags: { type: String, required: true },
-  level: { type: String, required: true },
-  demoVideoURL: { type: String, required: true },
-  benefits: [{ title: String }],
-  prerequites: [{ title: String }],
-  reviews: [reviewSchema],
-  courseData: [courseDataScehma],
-  ratings: { type: Number, default: 0 },
-  purchased: { type: Number, default: 0 },
-});
+  { timestamps: true },
+);
 
 const CourseModel: Model<ICourse> = mongoose.model("Course", courseSchema);
 
